@@ -3,40 +3,22 @@ package com.github.floushee.notescalendarsync;
 import com.mindoo.domino.jna.gc.NotesGC;
 import com.mindoo.domino.jna.utils.IDUtils;
 import com.mindoo.domino.jna.utils.NotesInitUtils;
-import lotus.domino.NotesThread;
 
 import java.util.List;
+import java.util.Optional;
 
 final class App {
 
     public static void main(String[] args) {
-        boolean notesInitialized = false;
-        try {
 
-            NotesInitUtils.notesInitExtended(new String[0]);
-            notesInitialized = true;
+        Config config = Config.fromArgs(args);
 
-            NotesThread.sinitThread();
-
-            NotesGC.runWithAutoGC(() -> {
-                System.out.println("Username of Notes ID: "+IDUtils.getIdUsername());
-                run();
-                return null;
+        NotesThread.run(config, () -> {
+            return NotesCalendarReader.readNotesCalendarEntries(config.getServer(), config.getFilePath());
+        }).ifPresent(entries -> {
+            entries.forEach(entry -> {
+                System.out.println(entry);
             });
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            NotesThread.stermThread();
-            if (notesInitialized) {
-                NotesInitUtils.notesTerm();
-            }
-        }
-    }
-
-    private static void run() {
-        List<CalendarEntry> entries = NotesCalendarReader.readNotesCalendarEntries("", "");
-        entries.forEach(entry -> {
-            System.out.println(entry);
-        });
+                });
     }
 }
