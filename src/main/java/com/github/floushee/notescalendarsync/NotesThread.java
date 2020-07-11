@@ -9,7 +9,7 @@ import java.util.function.Supplier;
 
 public class NotesThread {
 
-    public static <T> Optional<T> run(Config config, Supplier<T> supplier) {
+    public static <T> Optional<T> run(String userId, String password, Supplier<T> supplier) {
 
         boolean notesInitialized = false;
 
@@ -23,7 +23,7 @@ public class NotesThread {
             lotus.domino.NotesThread.sinitThread();
 
             result = NotesGC.runWithAutoGC(() -> {
-                IDUtils.switchToId(config.getUserId(), config.getPassword(), true);
+                IDUtils.switchToId(userId, password, true);
                 System.out.println("Username of Notes ID: "+IDUtils.getIdUsername());
                 return supplier.get();
             });
