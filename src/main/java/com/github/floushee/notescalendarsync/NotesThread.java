@@ -24,8 +24,6 @@ public class NotesThread {
             NotesInitUtils.notesInitExtended(new String[0]);
             notesInitialized = true;
 
-            lotus.domino.NotesThread.sinitThread();
-
             result = NotesGC.runWithAutoGC(() -> {
                 IDUtils.switchToId(userId, password, true);
                 System.out.println("Username of Notes ID: " + IDUtils.getIdUsername());
@@ -34,11 +32,18 @@ public class NotesThread {
         } catch (Exception e) {
             logger.error("Could not execute Notes thread", e);
         } finally {
-            lotus.domino.NotesThread.stermThread();
-            if (notesInitialized) {
-                NotesInitUtils.notesTerm();
+            // terminating the thread on my mac os machine is causing nsd
+            if (!isRunningOnMac()) {
+                lotus.domino.NotesThread.stermThread();
+                if (notesInitialized) {
+                    NotesInitUtils.notesTerm();
+                }
             }
         }
         return Optional.ofNullable(result);
+    }
+
+    private static boolean isRunningOnMac() {
+        return "Mac OS X".equals(System.getProperty("os.name"));
     }
 }

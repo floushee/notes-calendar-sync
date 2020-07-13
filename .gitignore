@@ -2,4 +2,4 @@ target
 .idea
 notes-calendar-sync.iml
 tokens
-src/main/resources/credentials.json
+client-credentials.json
