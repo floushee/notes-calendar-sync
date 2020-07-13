@@ -13,5 +13,12 @@ final class App {
                 System.out.println(entry);
             });
         });
+
+        GoogleCalendarApi.getCalendar(config.getCredentialsFile(), config.getTokensPath())
+                .map(GoogleCalendar::new)
+                .ifPresent(googleCalendar -> {
+                    googleCalendar.readEventIds(config.getCalendarId())
+                            .ifPresent(ids -> ids.forEach(System.out::println));
+                });
     }
 }

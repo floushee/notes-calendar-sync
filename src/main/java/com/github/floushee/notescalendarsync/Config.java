@@ -7,20 +7,24 @@ final class Config {
     private final String userId;
     private final String password;
     private final String calendarId;
+    private final String credentialsFile;
+    private final String tokensPath;
 
-    private Config(String server, String filePath, String userId, String password, String calendarId) {
+    private Config(String server, String filePath, String userId, String password, String calendarId, String credentialsFile, String tokensPath) {
         this.server = server;
         this.filePath = filePath;
         this.userId = userId;
         this.password = password;
         this.calendarId = calendarId;
+        this.credentialsFile = credentialsFile;
+        this.tokensPath = tokensPath;
     }
 
     public static Config fromArgs(String[] args) {
-        if (args.length != 5) {
-            throw new IllegalStateException("Usage: nodes-calender-sync.jar <server> <filepath> <userId> <password> <calendarId>");
+        if (args.length != 7) {
+            throw new IllegalStateException("Usage: nodes-calender-sync.jar <server> <filepath> <userId> <password> <calendarId> <client-credentials-file>");
         }
-        return new Config(args[0], args[1], args[2], args[3], args[4]);
+        return new Config(args[0], args[1], args[2], args[3], args[4], args[5], args[6]);
     }
 
     public String getServer() {
@@ -41,5 +45,13 @@ final class Config {
 
     public String getCalendarId() {
         return calendarId;
+    }
+
+    public String getCredentialsFile() {
+        return credentialsFile;
+    }
+
+    public String getTokensPath() {
+        return tokensPath;
     }
 }

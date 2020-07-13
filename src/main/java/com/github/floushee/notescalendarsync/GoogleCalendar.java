@@ -5,10 +5,16 @@ import com.google.api.services.calendar.Calendar;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventDateTime;
 import com.google.api.services.calendar.model.Events;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 final class GoogleCalendar {
+
+    private static final Logger logger = LoggerFactory.getLogger(GoogleCalendar.class);
 
     private final Calendar calendar;
 
@@ -16,22 +22,24 @@ final class GoogleCalendar {
         this.calendar = calendar;
     }
 
-    public void readEvents(String calendarId) throws Exception {
-        DateTime now = new DateTime(System.currentTimeMillis());
+    public Optional<List<String>> readEventIds(String calendarId) {
+        try {
+            DateTime now = new DateTime(System.currentTimeMillis());
 
-        Events events = calendar.events().list(calendarId)
-                .setOrderBy("startTime")
-                .setTimeMin(now)
-                .setSingleEvents(true)
-                .execute();
+            Events events = calendar.events().list(calendarId)
+                    .setOrderBy("startTime")
+                    .setTimeMin(now)
+                    .setSingleEvents(true)
+                    .execute();
 
-        List<Event> items = events.getItems();
-        for (Event event : items) {
-            DateTime start = event.getStart().getDateTime();
-            if (start == null) {
-                start = event.getStart().getDate();
-            }
-            System.out.printf("%s: %s (%s)\n", event.getId(), event.getSummary(), start);
+            return Optional.of(
+                    events.getItems().stream()
+                            .map(event -> event.getId())
+                            .collect(Collectors.toList())
+            );
+        } catch (Exception e) {
+            logger.error("Could not read Google calendar events", e);
+            return Optional.empty();
         }
     }
 
