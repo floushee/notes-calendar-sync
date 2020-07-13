@@ -24,6 +24,10 @@ final class CalendarEntry {
         }
     }
 
+    public String getId() {
+        return id;
+    }
+
     public String getSubject() {
         return subject;
     }
@@ -46,6 +50,7 @@ final class CalendarEntry {
         SimpleDateFormat formatter = allDay ? new SimpleDateFormat("dd.MM.yyyy") : new SimpleDateFormat("dd.MM.yyyy HH:mm");
 
         return "CalendarEntry{" +
+                "id='" + id + '\'' +
                 "subject='" + subject + '\'' +
                 ", start=" + formatter.format(start.getTime()) +
                 ", end=" + formatter.format(end.getTime()) +
