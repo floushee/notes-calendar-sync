@@ -6,6 +6,8 @@ import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.http.HttpRequest;
+import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
@@ -22,7 +24,7 @@ import java.util.Optional;
 
 import static java.util.Optional.empty;
 
-public class GoogleCalendarApi {
+final class GoogleCalendarApi {
 
     private static final Logger logger = LoggerFactory.getLogger(GoogleCalendarApi.class);
 
@@ -32,10 +34,10 @@ public class GoogleCalendarApi {
 
     private static final List<String> SCOPES = Collections.singletonList(CalendarScopes.CALENDAR_EVENTS);
 
-    public static Optional<Calendar> getCalendar(String credentialsFile, String tokensPath) {
+    public static Optional<Calendar> accessGoogleCalendar(String credentialsFile, String tokensPath) {
         try {
             final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
-            return Optional.of(new Calendar.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT, credentialsFile, tokensPath))
+            return Optional.of(new Calendar.Builder(HTTP_TRANSPORT, JSON_FACTORY, setHttpTimeout(getCredentials(HTTP_TRANSPORT, credentialsFile, tokensPath)))
                     .setApplicationName(APPLICATION_NAME)
                     .build());
         } catch (Exception e) {
@@ -60,5 +62,16 @@ public class GoogleCalendarApi {
                 .build();
         LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
         return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
+    }
+
+    public static HttpRequestInitializer setHttpTimeout(final HttpRequestInitializer requestInitializer) {
+        return new HttpRequestInitializer() {
+            @Override
+            public void initialize(HttpRequest httpRequest) throws IOException {
+                requestInitializer.initialize(httpRequest);
+                httpRequest.setConnectTimeout(30 * 60000);  // 3 minutes connect timeout
+                httpRequest.setReadTimeout(30 * 60000);  // 3 minutes read timeout
+            }
+        };
     }
 }

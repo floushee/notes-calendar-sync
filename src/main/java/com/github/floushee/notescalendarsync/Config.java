@@ -1,57 +1,63 @@
 package com.github.floushee.notescalendarsync;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 final class Config {
 
-    private final String server;
-    private final String filePath;
-    private final String userId;
-    private final String password;
-    private final String calendarId;
-    private final String credentialsFile;
-    private final String tokensPath;
+    private static final Logger logger = LoggerFactory.getLogger(Config.class);
 
-    private Config(String server, String filePath, String userId, String password, String calendarId, String credentialsFile, String tokensPath) {
-        this.server = server;
-        this.filePath = filePath;
-        this.userId = userId;
-        this.password = password;
-        this.calendarId = calendarId;
-        this.credentialsFile = credentialsFile;
-        this.tokensPath = tokensPath;
+    private final String notesServer;
+    private final String notesDatabasePath;
+    private final String notesUserId;
+    private final String notesUserPassword;
+    private final String googleCalendarId;
+    private final String googleClientCredentialsFile;
+    private final String googleOAuthTokensDirectory;
+
+    private Config(String notesServer, String notesDatabasePath, String notesUserId, String notesUserPassword, String googleCalendarId, String googleClientCredentialsFile, String googleOAuthTokensDirectory) {
+        this.notesServer = notesServer;
+        this.notesDatabasePath = notesDatabasePath;
+        this.notesUserId = notesUserId;
+        this.notesUserPassword = notesUserPassword;
+        this.googleCalendarId = googleCalendarId;
+        this.googleClientCredentialsFile = googleClientCredentialsFile;
+        this.googleOAuthTokensDirectory = googleOAuthTokensDirectory;
     }
 
     public static Config fromArgs(String[] args) {
         if (args.length != 7) {
+            logger.error("Config is not complete");
             throw new IllegalStateException("Usage: nodes-calender-sync.jar <server> <filepath> <userId> <password> <calendarId> <client-credentials-file>");
         }
         return new Config(args[0], args[1], args[2], args[3], args[4], args[5], args[6]);
     }
 
-    public String getServer() {
-        return server;
+    public String getNotesServer() {
+        return notesServer;
     }
 
-    public String getFilePath() {
-        return filePath;
+    public String getNotesDatabasePath() {
+        return notesDatabasePath;
     }
 
-    public String getUserId() {
-        return userId;
+    public String getNotesUserId() {
+        return notesUserId;
     }
 
-    public String getPassword() {
-        return password;
+    public String getNotesUserPassword() {
+        return notesUserPassword;
     }
 
-    public String getCalendarId() {
-        return calendarId;
+    public String getGoogleCalendarId() {
+        return googleCalendarId;
     }
 
-    public String getCredentialsFile() {
-        return credentialsFile;
+    public String getGoogleClientCredentialsFile() {
+        return googleClientCredentialsFile;
     }
 
-    public String getTokensPath() {
-        return tokensPath;
+    public String getGoogleOAuthTokensDirectory() {
+        return googleOAuthTokensDirectory;
     }
 }

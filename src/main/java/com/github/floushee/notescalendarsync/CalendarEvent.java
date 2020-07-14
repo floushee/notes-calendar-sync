@@ -1,26 +1,25 @@
 package com.github.floushee.notescalendarsync;
 
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
+import java.time.LocalDateTime;
 
-final class CalendarEntry {
+final class CalendarEvent {
 
     private final String id;
     private final String subject;
-    private final Calendar start;
-    private final Calendar end;
+    private final LocalDateTime start;
+    private final LocalDateTime end;
     private final boolean allDay;
 
-    public CalendarEntry(String id, String subject, Calendar start, Calendar end) {
+    public CalendarEvent(String id, String subject, LocalDateTime start, LocalDateTime end) {
         this.id = id;
         this.subject = subject;
         this.start = start;
         if (end == null) {
-            this.end = start;
             allDay = true;
+            this.end = start;
         } else {
-            this.end = end;
             allDay = false;
+            this.end = end;
         }
     }
 
@@ -32,11 +31,11 @@ final class CalendarEntry {
         return subject;
     }
 
-    public Calendar getStart() {
+    public LocalDateTime getStart() {
         return start;
     }
 
-    public Calendar getEnd() {
+    public LocalDateTime getEnd() {
         return end;
     }
 
@@ -46,14 +45,11 @@ final class CalendarEntry {
 
     @Override
     public String toString() {
-
-        SimpleDateFormat formatter = allDay ? new SimpleDateFormat("dd.MM.yyyy") : new SimpleDateFormat("dd.MM.yyyy HH:mm");
-
         return "CalendarEntry{" +
                 "id='" + id + '\'' +
                 "subject='" + subject + '\'' +
-                ", start=" + formatter.format(start.getTime()) +
-                ", end=" + formatter.format(end.getTime()) +
+                ", start=" + start +
+                ", end=" + end +
                 ", allDay=" + allDay +
                 '}';
     }

@@ -1,19 +1,23 @@
 package com.github.floushee.notescalendarsync;
 
-import com.mindoo.domino.jna.gc.NotesGC;
 import com.mindoo.domino.jna.utils.IDUtils;
-import com.mindoo.domino.jna.utils.NotesInitUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 import java.util.function.Supplier;
 
-public class NotesThread {
+import static com.mindoo.domino.jna.gc.NotesGC.runWithAutoGC;
+import static com.mindoo.domino.jna.utils.IDUtils.switchToId;
+import static com.mindoo.domino.jna.utils.NotesInitUtils.notesInitExtended;
+import static com.mindoo.domino.jna.utils.NotesInitUtils.notesTerm;
+import static java.util.Optional.ofNullable;
+
+final class NotesThread {
 
     private static final Logger logger = LoggerFactory.getLogger(NotesThread.class);
 
-    public static <T> Optional<T> run(String userId, String password, Supplier<T> supplier) {
+    public static <T> Optional<T> runNotesThread(String userId, String password, Supplier<T> supplier) {
 
         boolean notesInitialized = false;
 
@@ -21,12 +25,15 @@ public class NotesThread {
 
         try {
 
-            NotesInitUtils.notesInitExtended(new String[0]);
+            logger.info("Initializing Notes thread...");
+            notesInitExtended(new String[0]);
+            logger.info("Successfully initialized Notes thread");
+
             notesInitialized = true;
 
-            result = NotesGC.runWithAutoGC(() -> {
-                IDUtils.switchToId(userId, password, true);
-                System.out.println("Username of Notes ID: " + IDUtils.getIdUsername());
+            result = runWithAutoGC(() -> {
+                switchToId(userId, password, true);
+                logger.info("Switched to user id: " + IDUtils.getIdUsername());
                 return supplier.get();
             });
         } catch (Exception e) {
@@ -34,13 +41,16 @@ public class NotesThread {
         } finally {
             // terminating the thread on my mac os machine is causing nsd
             if (!isRunningOnMac()) {
-                lotus.domino.NotesThread.stermThread();
                 if (notesInitialized) {
-                    NotesInitUtils.notesTerm();
+                    logger.info("Terminating Notes thread...");
+                    notesTerm();
+                    logger.info("Successfully terminated Notes thread.");
                 }
+            } else {
+                logger.warn("Skipped Notes thread termination because the app is running oin macOS");
             }
         }
-        return Optional.ofNullable(result);
+        return ofNullable(result);
     }
 
     private static boolean isRunningOnMac() {

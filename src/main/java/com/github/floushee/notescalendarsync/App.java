@@ -1,24 +1,33 @@
 package com.github.floushee.notescalendarsync;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Optional;
+
+import static com.github.floushee.notescalendarsync.GoogleCalendarApi.accessGoogleCalendar;
+import static com.github.floushee.notescalendarsync.NotesCalendar.readNotesCalendarEvents;
+import static com.github.floushee.notescalendarsync.NotesThread.runNotesThread;
+import static java.lang.System.exit;
+
 final class App {
+
+    private static final Logger logger = LoggerFactory.getLogger(App.class);
 
     public static void main(String[] args) {
 
         Config config = Config.fromArgs(args);
 
-        NotesThread.run(config.getUserId(), config.getPassword(), () -> {
-            return NotesCalendar.readNotesCalendarEntries(config.getServer(), config.getFilePath());
-        }).ifPresent(entries -> {
-            entries.forEach(entry -> {
-                System.out.println(entry);
-            });
-        });
+        Optional<GoogleCalendarSyncService> googleSync = accessGoogleCalendar(config.getGoogleClientCredentialsFile(), config.getGoogleOAuthTokensDirectory())
+                .map(api -> new GoogleCalendarSyncService(api, config.getGoogleCalendarId()));
 
-        GoogleCalendarApi.getCalendar(config.getCredentialsFile(), config.getTokensPath())
-                .map(GoogleCalendar::new)
-                .ifPresent(googleCalendar -> {
-                    googleCalendar.readEventIds(config.getCalendarId())
-                            .ifPresent(ids -> ids.forEach(System.out::println));
-                });
+        if (!googleSync.isPresent()) {
+            logger.error("Could not access Google calendar API. Shutting down application.");
+            exit(1);
+        }
+
+        runNotesThread(config.getNotesUserId(), config.getNotesUserPassword(), () -> {
+            return readNotesCalendarEvents(config.getNotesServer(), config.getNotesDatabasePath());
+        }).ifPresent(entries -> googleSync.get().syncEvents(entries));
     }
 }
