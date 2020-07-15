@@ -3,8 +3,6 @@ package com.github.floushee.notescalendarsync;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Optional;
-
 import static com.github.floushee.notescalendarsync.GoogleCalendarApi.accessGoogleCalendar;
 import static com.github.floushee.notescalendarsync.NotesCalendar.readNotesCalendarEvents;
 import static com.github.floushee.notescalendarsync.NotesThread.runNotesThread;
@@ -16,18 +14,20 @@ final class App {
 
     public static void main(String[] args) {
 
-        Config config = Config.fromArgs(args);
-
-        Optional<GoogleCalendarSyncService> googleSync = accessGoogleCalendar(config.getGoogleClientCredentialsFile(), config.getGoogleOAuthTokensDirectory())
-                .map(api -> new GoogleCalendarSyncService(api, config.getGoogleCalendarId()));
-
-        if (!googleSync.isPresent()) {
-            logger.error("Could not access Google calendar API. Shutting down application.");
+        if (args.length != 1) {
+            logger.error("Usage: java -jar notes-calendar-sync.jar <path-to-config-file>");
             exit(1);
         }
 
-        runNotesThread(config.getNotesUserId(), config.getNotesUserPassword(), () -> {
-            return readNotesCalendarEvents(config.getNotesServer(), config.getNotesDatabasePath());
-        }).ifPresent(entries -> googleSync.get().syncEvents(entries));
+        Config.fromFile(args[0])
+                .ifPresent(config -> {
+                    accessGoogleCalendar(config.getGoogleClientCredentialsFile(), config.getGoogleOAuthTokensDirectory())
+                            .map(api -> new GoogleCalendarSyncService(api, config.getGoogleCalendarId()))
+                            .ifPresent(googleSync -> {
+                                runNotesThread(config.getNotesUserId(), config.getNotesUserPassword(), () -> {
+                                    return readNotesCalendarEvents(config.getNotesServer(), config.getNotesDatabasePath());
+                                }).ifPresent(entries -> googleSync.syncEvents(entries));
+                            });
+                });
     }
 }
