@@ -26,7 +26,7 @@ final class NotesCalendar {
     private static final String COLUMN_END = "$146";
     private static final String COLUMN_SUBJECT = "$147";
 
-    public static List<CalendarEvent> readNotesCalendarEvents(String server, String filePath) {
+    public static List<CalendarEvent> readNotesCalendarEvents(String server, String filePath, List<String> ignoreList) {
 
         logger.info(format("Accessing Domino server [%s, %s]", server, filePath));
         NotesDatabase database = new NotesDatabase(server, filePath, "");
@@ -38,7 +38,10 @@ final class NotesCalendar {
                 .stream()
                 .map(NotesCalendar::convertToEvent)
                 .filter(NotesCalendar::isFutureEvent)
-                .filter(NotesCalendar::isNotYouAreDeputyEvent)
+                .filter(event -> !ignoreList.stream().
+                        filter(item -> event.getSubject().toLowerCase().contains(item.toLowerCase()))
+                        .findAny()
+                        .isPresent())
                 .collect(Collectors.toList());
 
         logger.info(format("Successfully read %d Notes calendar entries", events.size()));

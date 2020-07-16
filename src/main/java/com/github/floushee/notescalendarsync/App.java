@@ -25,7 +25,7 @@ final class App {
                             .map(api -> new GoogleCalendarSyncService(api, config.getGoogleCalendarId()))
                             .ifPresent(googleSync -> {
                                 runNotesThread(config.getNotesUserId(), config.getNotesUserPassword(), () -> {
-                                    return readNotesCalendarEvents(config.getNotesServer(), config.getNotesDatabasePath());
+                                    return readNotesCalendarEvents(config.getNotesServer(), config.getNotesDatabasePath(), config.getEventIgnoreList());
                                 }).ifPresent(entries -> googleSync.syncEvents(entries));
                             });
                 });

@@ -5,8 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.util.Optional;
-import java.util.Properties;
+import java.util.*;
 
 import static java.lang.String.format;
 import static java.util.Optional.empty;
@@ -22,8 +21,9 @@ final class Config {
     private final String googleCalendarId;
     private final String googleClientCredentialsFile;
     private final String googleOAuthTokensDirectory;
+    private final List<String> eventIgnoreList;
 
-    private Config(String notesServer, String notesDatabasePath, String notesUserId, String notesUserPassword, String googleCalendarId, String googleClientCredentialsFile, String googleOAuthTokensDirectory) {
+    private Config(String notesServer, String notesDatabasePath, String notesUserId, String notesUserPassword, String googleCalendarId, String googleClientCredentialsFile, String googleOAuthTokensDirectory, List<String> eventIgnoreList) {
         this.notesServer = notesServer;
         this.notesDatabasePath = notesDatabasePath;
         this.notesUserId = notesUserId;
@@ -31,6 +31,7 @@ final class Config {
         this.googleCalendarId = googleCalendarId;
         this.googleClientCredentialsFile = googleClientCredentialsFile;
         this.googleOAuthTokensDirectory = googleOAuthTokensDirectory;
+        this.eventIgnoreList = eventIgnoreList;
     }
 
 
@@ -48,6 +49,7 @@ final class Config {
             String googleCalendarId = props.getProperty("google.calendar.id");
             String googleClientCredentialsFile = props.getProperty("google.client.credentials.file");
             String googleOAuthTokensDirectory = props.getProperty("google.oauth.tokens.directory");
+            List<String> eventIgnoreList = asList(props, "event.ignore.list");
 
             if (isNullOrEmpty(notesServer)
                     || isNullOrEmpty(notesDatabasePath)
@@ -61,11 +63,17 @@ final class Config {
                 return empty();
             }
 
-            return Optional.of(new Config(notesServer, notesDatabasePath, notesUserId, notesUserPassword, googleCalendarId, googleClientCredentialsFile, googleOAuthTokensDirectory));
+
+            return Optional.of(new Config(notesServer, notesDatabasePath, notesUserId, notesUserPassword, googleCalendarId, googleClientCredentialsFile, googleOAuthTokensDirectory, eventIgnoreList));
         } catch (Exception e) {
             logger.error(format("Could not read config file from %s", configFile), e);
             return empty();
         }
+    }
+
+    private static List<String> asList(Properties props, String key) {
+        String property = props.getProperty(key);
+        return property != null ? Arrays.asList(property.split(",")) : new ArrayList<>();
     }
 
     private static boolean isNullOrEmpty(String string) {
@@ -98,5 +106,9 @@ final class Config {
 
     public String getGoogleOAuthTokensDirectory() {
         return googleOAuthTokensDirectory;
+    }
+
+    public List<String> getEventIgnoreList() {
+        return eventIgnoreList;
     }
 }
